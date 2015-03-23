@@ -14,7 +14,7 @@
 
 from util import manhattanDistance
 from game import Directions
-import random, util
+import random, util, sys
 
 from game import Agent
 
@@ -147,19 +147,26 @@ class MinimaxAgent(MultiAgentSearchAgent):
         return solver.solve(gameState)
 
 class MiniMaxSolver:
-    def __init__(self, agent):
+    def __init__(self, agent, alpha_beta = False):
         self.agent = agent
+        self.alpha_beta = alpha_beta
+        self.alpha = None
+        self.beta = None
 
     def solve(self, state):
         actions = state.getLegalActions(0)
         nodeVals = []
+        alpha = -sys.maxint
+        beta = sys.maxint
         for action in actions:
           newState = state.generateSuccessor(0, action)
-          nodeVals.append(self.getNodeVal(newState, 1, self.agent.depth-1))
+          val = self.getNodeVal(newState, 1, self.agent.depth-1, alpha, beta)
+          nodeVals.append(val)
+          alpha = max(alpha, val)
         maxNodeVal = max(nodeVals)
         return actions[nodeVals.index(maxNodeVal)]
 
-    def getNodeVal(self, state, agent, depth):
+    def getNodeVal(self, state, agent, depth, alpha = -sys.maxint, beta = sys.maxint):
         if agent == state.getNumAgents():
           # nex ply or evaluate
           if depth == 0:
@@ -171,9 +178,26 @@ class MiniMaxSolver:
           return self.agent.evaluationFunction(state)
         actions = state.getLegalActions(agent)
         subNodeVals = []
+        if self.alpha_beta:
+          if agent == 0:
+            vi = alpha
+          else:
+            vi = beta
         for action in actions:
           newState = state.generateSuccessor(agent, action)
-          subNodeVals.append(self.getNodeVal(newState, agent+1, depth))
+          val = self.getNodeVal(newState, agent+1, depth, alpha, beta)
+          if self.alpha_beta:
+            if agent == 0:
+              vi = max(vi, val)
+              if vi > beta:
+                return vi
+              alpha = max(alpha, vi)
+            else:
+              vi = min(vi, val)
+              if vi < alpha:
+                return vi
+              beta = min(beta, vi)
+          subNodeVals.append(val)
         if agent == 0:
           return max(subNodeVals)
         else:
@@ -190,7 +214,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        solver = MiniMaxSolver(self, True)
+        return solver.solve(gameState)
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
