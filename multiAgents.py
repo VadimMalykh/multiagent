@@ -147,11 +147,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
         return solver.solve(gameState)
 
 class MiniMaxSolver:
-    def __init__(self, agent, alpha_beta = False):
+    def __init__(self, agent, alpha_beta = False, expectimax = False):
         self.agent = agent
         self.alpha_beta = alpha_beta
-        self.alpha = None
-        self.beta = None
+        self.expectimax = expectimax
 
     def solve(self, state):
         actions = state.getLegalActions(0)
@@ -201,7 +200,10 @@ class MiniMaxSolver:
         if agent == 0:
           return max(subNodeVals)
         else:
-          return min(subNodeVals)
+          if self.expectimax:
+            return float(sum(subNodeVals))/len(subNodeVals)
+          else:
+            return min(subNodeVals)
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -230,7 +232,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        solver = MiniMaxSolver(self, False, True)
+        return solver.solve(gameState)
 
 def betterEvaluationFunction(currentGameState):
     """
